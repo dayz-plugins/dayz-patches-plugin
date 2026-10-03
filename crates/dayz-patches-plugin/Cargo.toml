@@ -1,0 +1,21 @@
+[package]
+name = "dayz-patches-plugin"
+description = "Loader plugin that works around engine bugs, each one switchable on its own."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+name = "patches"
+crate-type = ["cdylib"]
+
+[dependencies]
+dayz-plugin-sdk.workspace = true
+log.workspace = true
+microseh.workspace = true
+
+[lints]
+workspace = true

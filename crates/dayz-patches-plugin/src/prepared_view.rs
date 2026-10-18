@@ -16,7 +16,8 @@
 use core::ffi::c_void;
 use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 
-use dayz_plugin_sdk::{Host, PluginError};
+use dayz_game::Dayz;
+use uniloader_sdk::{Host, PluginError};
 
 /// `render.execute_view`, as the engine declares it.
 ///
@@ -49,9 +50,9 @@ const SKIP_INTERVAL: u64 = 100;
 /// # Errors
 /// The symbol or the offset is missing from the database for this build, or the address is
 /// one the loader refuses to detour.
-pub(crate) fn install(host: &Host, enabled: bool) -> Result<(), PluginError> {
-    let target = host.symbol("render.execute_view")?;
-    let offset = host.offset("render.prepared_view")?;
+pub(crate) fn install(host: &Host, dayz: &Dayz, enabled: bool) -> Result<(), PluginError> {
+    let target = dayz.symbol("render.execute_view")?;
+    let offset = dayz.offset("render.prepared_view")?;
     OFFSET.store(offset, Ordering::Relaxed);
     ENABLED.store(enabled, Ordering::Relaxed);
     // SAFETY: `guarded` has the signature of the function the database names, which is what
@@ -92,7 +93,7 @@ pub(crate) fn counters() -> (u64, u64, bool) {
 unsafe extern "C" fn guarded(engine: *mut c_void, context: *mut c_void, mode: u8) -> *mut c_void {
     if skip(context) {
         let skips = SKIPPED.fetch_add(1, Ordering::Relaxed) + 1;
-        if skips <= VERBOSE_SKIPS || skips % SKIP_INTERVAL == 0 {
+        if skips <= VERBOSE_SKIPS || skips.is_multiple_of(SKIP_INTERVAL) {
             log::warn!(
                 "skipped a view the engine never prepared: context {context:p}, mode {mode}, \
                  {skips} so far"

@@ -1,7 +1,7 @@
 # dayz-patches-plugin
 
-Workarounds for DayZ engine bugs, as a plugin for
-[dayz-plugin-loader](https://github.com/dayz-plugins/dayz-plugin-loader).
+Workarounds for DayZ engine bugs, as a plugin for [uniloader](https://uniloaders.github.io/)
+with the [DayZ adapter](https://github.com/dayz-plugins/dayz-adapter).
 
 Nothing in here adds a feature. Every patch exists because the engine does something that
 crashes or misbehaves, and every patch follows the same three rules:
@@ -43,25 +43,27 @@ patches.guard_prepared_view        # the switch, in the console or the settings 
 patches.status                     # on/off, how many views were skipped, how many forwarded
 ```
 
-The plugin asks the loader for `render.execute_view` through `require_symbols`, so a game
-build the address database does not cover leaves the plugin unloaded with that name in the
-log, rather than detouring something else.
+Put `patches.dll` into the game's `plugins/` folder next to `dayz.dll`. The plugin asks the
+adapter whether `render.execute_view` resolves for this build before it detours anything, so a
+game build the address database does not cover leaves the plugin not started, with that name
+in the log, rather than detouring something else.
 
 ## Building
 
 ```bash
-scripts/build.sh --deploy
+scripts/gate.sh --deploy
 ```
 
-Needs a sibling [dayz-plugin-loader](https://github.com/dayz-plugins/dayz-plugin-loader)
-checkout for the SDK (`DAYZ_LOADER_DIR` overrides where it looks) and the `build-box`
-container for the toolchain. `--check` runs the host gate only.
+Needs sibling checkouts of [uniloader](https://github.com/uniloaders/uniloader) (at
+`../../uniloader`) and [dayz-adapter](https://github.com/dayz-plugins/dayz-adapter), and the
+`build-box` container for the toolchain. `--host` runs the host steps only.
 
 ## Related repositories
 
 | Repository | What it is |
 | --- | --- |
-| [dayz-plugin-loader](https://github.com/dayz-plugins/dayz-plugin-loader) | The loader, the plugin ABI and the SDK |
+| [uniloader](https://github.com/uniloaders/uniloader) | The loader and the plugin SDK |
+| [dayz-adapter](https://github.com/dayz-plugins/dayz-adapter) | The `dayz` plugin: addresses, game events, chat |
 | [dayz-data](https://github.com/dayz-plugins/dayz-data) | Addresses and struct offsets per game build |
 | [dayz-debug-plugin](https://github.com/dayz-plugins/dayz-debug-plugin) | The console and loader state on a socket |
 | [dayz-plugins.github.io](https://github.com/dayz-plugins/dayz-plugins.github.io) | Design notes and research |

@@ -15,9 +15,9 @@ repository carries only `README.md` and `AGENTS.md`.
 - **Every patch gets a setting, a counter and a log line.** No exceptions. A workaround that
   cannot be switched off cannot be ruled out when something else breaks, and one that does not
   count itself cannot be shown to be doing anything.
-- **Never hard-code an address.** Ask the loader for a name from
-  [dayz-data](https://github.com/dayz-plugins/dayz-data) and declare it with
-  `require_symbols`, so a game update names a missing symbol in the log instead of detouring
+- **Never hard-code an address.** Ask the `dayz` adapter for a name from
+  [dayz-data](https://github.com/dayz-plugins/dayz-data) and check it with `Dayz::require`
+  in `start`, so a game update names a missing symbol in the log instead of detouring
   whatever now lives at that address.
 - **A patch needs evidence before it ships.** The disassembly that shows the bug belongs in
   the README, and the symbol and offset it depends on belong in dayz-data with a note.
@@ -32,10 +32,14 @@ repository carries only `README.md` and `AGENTS.md`.
 ## Checks
 
 ```bash
-scripts/build.sh            # fmt, clippy, tests, docs, then the Windows build
-scripts/build.sh --check    # host gate only
-scripts/build.sh --deploy   # also install patches.dll into the game directory
+scripts/gate.sh             # fmt, clippy, tests, docs, then the Windows build
+scripts/gate.sh --host      # host gate only
+scripts/gate.sh --deploy    # also install patches.dll into the game directory
 ```
+
+The plugin runs on [uniloader](https://github.com/uniloaders/uniloader) and gets everything
+DayZ-specific from the [dayz adapter](https://github.com/dayz-plugins/dayz-adapter); both are
+sibling checkouts.
 
 Zero warnings is the bar; the lints are set in the workspace manifest and `unsafe_code` is
 denied except in the hook module, which says in a comment why it has to allow it.

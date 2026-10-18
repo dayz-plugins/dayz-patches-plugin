@@ -7,7 +7,8 @@
 
 mod prepared_view;
 
-use dayz_plugin_sdk::{export_plugin, Host, Plugin, PluginError, Setting};
+use dayz_game::Dayz;
+use uniloader_sdk::{export_plugin, Dependency, Host, Plugin, PluginError, Setting};
 
 /// Setting that switches the prepared-view guard.
 const GUARD_SETTING: &str = "guard_prepared_view";
@@ -16,8 +17,11 @@ struct Patches;
 
 impl Plugin for Patches {
     const NAME: &'static str = "patches";
+    const TITLE: &'static str = "DayZ patches";
     const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+    const AUTHORS: &'static str = "Bluscream";
     const DESCRIPTION: &'static str = "Works around engine bugs; each patch has its own switch.";
+    const DEPENDENCIES: &'static [Dependency] = &[Dependency::plugin(dayz_game::PLUGIN, ">=0.1")];
 
     fn start(host: Host) -> Result<Self, PluginError> {
         host.setting(
@@ -31,11 +35,13 @@ impl Plugin for Patches {
             "Show which patches are on and how often each has acted.",
             "",
         )?;
-        // Unloaded rather than crashing later: a build whose database has no execute_view is
-        // a build this plugin cannot guard, and saying so is the whole value of asking.
-        host.require_symbols(["render.execute_view"])?;
+        let dayz = Dayz::connect(&host)
+            .ok_or_else(|| PluginError::from("the dayz adapter is not running".to_owned()))?;
+        // Not started rather than crashing later: a build whose database has no execute_view
+        // is a build this plugin cannot guard, and saying so is the whole value of asking.
+        dayz.require(&["render.execute_view"])?;
         let enabled = host.get_as::<bool>(GUARD_SETTING).unwrap_or(true);
-        prepared_view::install(&host, enabled)?;
+        prepared_view::install(&host, &dayz, enabled)?;
         Ok(Patches)
     }
 
